@@ -7,9 +7,26 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="./tic-tac-toe.css" />
+        <script src="./Difficulty.js"></script>
+        <script src="./Mode.js"></script>
         <script src="./TicTacToe.js"></script>
     </head>
     <body onload="TicTacToe.main();">
         <h1>Tic-tac-toe</h1>
+        <form action="./index.html">
+            <label for="mode">Mode:</label>
+            <select id="mode" name="mode" onchange="TicTacToe.toggleDifficulty();">
+                <option value="SINGLE_PLAYER">Single Player</option>
+                <option value="TWO_PLAYERS">Two Players</option>
+            </select>
+            <br />
+            <label for="difficulty">Difficulty:</label>
+            <select id="difficulty" name="difficulty">
+                <option value="EASY">Easy</option>
+                <option value="HARD">Hard</option>
+            </select>
+            <br />
+            <input type="submit" value="Start" autofocus="autofocus" />
+        </form>
     </body>
 </html>
