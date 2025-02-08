@@ -1,0 +1,14 @@
+body {
+    font-family: 'Varela Round';
+}
+
+table {
+    border: 5px solid black;
+    border-collapse: collapse;
+}
+
+td {
+    border: 5px solid black;
+    width: 10px;
+    height: 10px;
+}
