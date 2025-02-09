@@ -14,6 +14,8 @@ class TicTacToe {
     static #SELECTOR_MODE = 'select#mode';
     static #SIZE = 3;
 
+    #mode;
+    #difficulty;
     #cells;
     #turn;
 
@@ -40,6 +42,8 @@ class TicTacToe {
     }
 
     constructor(mode, difficulty) {
+        this.#mode = mode;
+        this.#difficulty = difficulty;
         this.#cells = [];
         this.#turn = Symbol.X;
         const table = document.createElement(TicTacToe.#ELEMENT_TABLE);
@@ -51,16 +55,7 @@ class TicTacToe {
                 this.#cells[i][j].appendChild(document.createTextNode('*'));
                 this.#cells[i][j].style.cursor = TicTacToe.#CURSOR_ENABLED;
                 this.#cells[i][j].foo = () => {
-                    this.#disable();
-                    this.#setSymbol(i, j, this.#turn);
-                    if (this.#isComplete(i, j, this.#turn)) {
-                        alert(this.#turn + ' won');
-                    } else {
-                        this.#turn = (this.#turn == Symbol.X) ? Symbol.O : Symbol.X;
-                        if (mode == Mode.SINGLE_PLAYER) {
-                            this.#enable();
-                        }
-                    }
+                    this.#setSymbol(i, j);
                 };
                 row.appendChild(this.#cells[i][j]);
             }
@@ -148,12 +143,30 @@ class TicTacToe {
         return Object.values(Symbol).includes(symbol) ? symbol : null;
     }
 
-    #setSymbol(row, column, symbol) {
+    #setSymbol(row, column) {
+        this.#disable();
         this.#cells[row][column].removeChild(this.#cells[row][column].firstChild);
-        this.#cells[row][column].appendChild(document.createTextNode(symbol));
+        this.#cells[row][column].appendChild(document.createTextNode(this.#turn));
+        if (this.#isComplete(row, column, this.#turn)) {
+            alert(this.#turn + ' won');
+        } else {
+            this.#turn = (this.#turn == Symbol.X) ? Symbol.O : Symbol.X;
+            if ((this.#mode == Mode.TWO_PLAYERS) || (this.#turn == Symbol.X)) {
+                this.#enable();
+            } else {
+                const random = this.#random();
+                this.#setSymbol(random.i, random.j);
+            }
+        }
     }
 
     #highlight(row, column) {
         this.#cells[row][column].style.backgroundColor = TicTacToe.#HIGHLIGHT;
+    }
+
+    #random() {
+        const i = Math.floor(Math.random() * TicTacToe.#SIZE);
+        const j = Math.floor(Math.random() * TicTacToe.#SIZE);
+        return (this.#getSymbol(i, j) == null) ? {i: i, j: j} : this.#random();
     }
 }
