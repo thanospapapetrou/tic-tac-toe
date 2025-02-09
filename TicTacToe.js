@@ -154,6 +154,17 @@ class TicTacToe {
         return complete;
     }
 
+    #isDraw() {
+        for (let i = 0; i < TicTacToe.#SIZE; i++) {
+            for (let j = 0; j < TicTacToe.#SIZE; j++) {
+                if (this.#getSymbol(i, j) == null) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     #getSymbol(row, column) {
         const symbol = this.#cells[row][column].firstChild.nodeValue;
         return Object.values(Symbol).includes(symbol) ? symbol : null;
@@ -165,6 +176,8 @@ class TicTacToe {
         this.#cells[row][column].appendChild(document.createTextNode(this.#turn));
         if (this.#isComplete(row, column, this.#turn)) {
             alert(this.#turn + ' won');
+        } else if (this.#isDraw()) {
+            alert('Draw');
         } else {
             this.#turn = (this.#turn == Symbol.X) ? Symbol.O : Symbol.X;
             this.#playNext();
