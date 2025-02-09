@@ -20,6 +20,10 @@ class TicTacToe {
     #turn;
 
     static main() {
+        // TODO cleanup redundant methods
+        // change human symbol
+        // stop when no cells remain
+        // timer
         TicTacToe.toggleDifficulty();
         const mode = TicTacToe.#getParameter(TicTacToe.#PARAMETER_MODE, Mode);
         const difficulty = TicTacToe.#getParameter(TicTacToe.#PARAMETER_DIFFICULTY, Difficulty);
@@ -54,9 +58,6 @@ class TicTacToe {
                 this.#cells[i][j] = document.createElement(TicTacToe.#ELEMENT_CELL);
                 this.#cells[i][j].appendChild(document.createTextNode('*'));
                 this.#cells[i][j].style.cursor = TicTacToe.#CURSOR_ENABLED;
-                this.#cells[i][j].foo = () => {
-                    this.#setSymbol(i, j);
-                };
                 row.appendChild(this.#cells[i][j]);
             }
             table.appendChild(row);
@@ -70,7 +71,7 @@ class TicTacToe {
             for (let j = 0; j < TicTacToe.#SIZE; j++) {
                 if (this.#getSymbol(i, j) == null) {
                     this.#cells[i][j].style.cursor = TicTacToe.#CURSOR_ENABLED;
-                    this.#cells[i][j].onclick = this.#cells[i][j].foo;
+                    this.#cells[i][j].onclick = () => this.#setSymbol(i, j);
                 }
             }
         }
