@@ -16,7 +16,7 @@
         <h1>Tic-tac-toe</h1>
         <form action="./index.html">
             <label for="mode">Mode:</label>
-            <select id="mode" name="mode" onchange="TicTacToe.toggleDifficulty();">
+            <select id="mode" name="mode" onchange="TicTacToe.toggleDifficultySymbol();">
                 <option value="SINGLE_PLAYER">Single Player</option>
                 <option value="TWO_PLAYERS">Two Players</option>
             </select>
@@ -25,6 +25,12 @@
             <select id="difficulty" name="difficulty">
                 <option value="EASY">Easy</option>
                 <option value="HARD">Hard</option>
+            </select>
+            <br />
+            <label for="symbol">Symbol:</label>
+            <select id="symbol" name="symbol">
+                <option value="X">X</option>
+                <option value="O">O</option>
             </select>
             <br />
             <input type="submit" value="Start" autofocus="autofocus" />

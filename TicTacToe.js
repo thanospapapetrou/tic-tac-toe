@@ -8,36 +8,41 @@ class TicTacToe {
     static #HIGHLIGHT = 'lime';
     static #PARAMETER_DIFFICULTY = 'difficulty';
     static #PARAMETER_MODE = 'mode';
+    static #PARAMETER_SYMBOL = 'symbol';
     static #SELECTOR_BODY = 'body';
     static #SELECTOR_DIFFICULTY = 'select#difficulty';
     static #SELECTOR_FORM = 'form';
     static #SELECTOR_MODE = 'select#mode';
+    static #SELECTOR_SYMBOL = 'select#symbol';
     static #SIZE = 3;
 
     #mode;
     #difficulty;
+    #symbol;
     #cells;
     #turn;
 
     static main() {
         // TODO cleanup redundant methods
-        // change human symbol
         // stop when no cells remain
         // timer
-        TicTacToe.toggleDifficulty();
+        TicTacToe.toggleDifficultySymbol();
         const mode = TicTacToe.#getParameter(TicTacToe.#PARAMETER_MODE, Mode);
         const difficulty = TicTacToe.#getParameter(TicTacToe.#PARAMETER_DIFFICULTY, Difficulty);
+        const symbol = TicTacToe.#getParameter(TicTacToe.#PARAMETER_SYMBOL, Symbol);
         (mode != null) && (document.querySelector(TicTacToe.#SELECTOR_MODE).value = mode);
         (difficulty != null) && (document.querySelector(TicTacToe.#SELECTOR_DIFFICULTY).value = difficulty);
-        if ((mode != null) && ((mode != Mode.SINGLE_PLAYER) || (difficulty != null))) {
+        (symbol != null) && (document.querySelector(TicTacToe.#SELECTOR_SYMBOL).value = symbol);
+        if ((mode != null) && ((mode != Mode.SINGLE_PLAYER) || ((difficulty != null) && (symbol != null)))) {
             document.querySelector(TicTacToe.#SELECTOR_FORM).style.display = TicTacToe.#DISPLAY_NONE;
-            new TicTacToe(mode, difficulty);
+            new TicTacToe(mode, difficulty, symbol);
         }
     }
 
-    static toggleDifficulty() {
-        const mode = document.querySelector(TicTacToe.#SELECTOR_MODE).value;
-        document.querySelector(TicTacToe.#SELECTOR_DIFFICULTY).disabled = (mode == Mode.TWO_PLAYERS);
+    static toggleDifficultySymbol() {
+        const twoPlayers = document.querySelector(TicTacToe.#SELECTOR_MODE).value == Mode.TWO_PLAYERS;
+        document.querySelector(TicTacToe.#SELECTOR_DIFFICULTY).disabled = twoPlayers;
+        document.querySelector(TicTacToe.#SELECTOR_SYMBOL).disabled = twoPlayers;
     }
 
     static #getParameter(key, enumeration) {
@@ -45,9 +50,10 @@ class TicTacToe {
         return Object.values(enumeration).includes(value) ? value : null;
     }
 
-    constructor(mode, difficulty) {
+    constructor(mode, difficulty, symbol) {
         this.#mode = mode;
         this.#difficulty = difficulty;
+        this.#symbol = symbol;
         this.#cells = [];
         this.#turn = Symbol.X;
         const table = document.createElement(TicTacToe.#ELEMENT_TABLE);
@@ -63,7 +69,16 @@ class TicTacToe {
             table.appendChild(row);
         }
         document.querySelector(TicTacToe.#SELECTOR_BODY).appendChild(table);
-        this.#enable();
+        this.#playNext();
+    }
+
+    #playNext() {
+        if ((this.#mode == Mode.TWO_PLAYERS) || (this.#turn == this.#symbol)) {
+            this.#enable();
+        } else {
+            const random = this.#random();
+            this.#setSymbol(random.i, random.j);
+        }
     }
 
     #enable() {
@@ -152,12 +167,7 @@ class TicTacToe {
             alert(this.#turn + ' won');
         } else {
             this.#turn = (this.#turn == Symbol.X) ? Symbol.O : Symbol.X;
-            if ((this.#mode == Mode.TWO_PLAYERS) || (this.#turn == Symbol.X)) {
-                this.#enable();
-            } else {
-                const random = this.#random();
-                this.#setSymbol(random.i, random.j);
-            }
+            this.#playNext();
         }
     }
 
