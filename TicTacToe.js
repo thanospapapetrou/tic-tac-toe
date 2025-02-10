@@ -16,17 +16,16 @@ class TicTacToe {
     static #SELECTOR_STATUS = 'p';
     static #SELECTOR_SYMBOL = 'select#symbol';
     static #SELECTOR_TABLE = 'table';
+    static #SELECTOR_TURN = 'span:nth-of-type(1)';
     static #SIZE = 3;
 
     #mode;
     #difficulty;
     #symbol;
     #cells;
-    #turn;
     #timer;
 
     static main() {
-        // TODO turn with getter and setter
         // TODO message constants
         // TODO refactor using dirs
         // TODO start over
@@ -75,6 +74,16 @@ class TicTacToe {
         table.style.display = TicTacToe.#DISPLAY_TABLE;
         document.querySelector(TicTacToe.#SELECTOR_STATUS).style.display = TicTacToe.#DISPLAY_BLOCK;
         this.#playNext();
+    }
+
+    get #turn() {
+        return document.querySelector(TicTacToe.#SELECTOR_TURN).firstChild.nodeValue;
+    }
+
+    set #turn(turn) {
+        const element = document.querySelector(TicTacToe.#SELECTOR_TURN);
+        element.firstChild && element.removeChild(element.firstChild);
+        element.appendChild(document.createTextNode(turn));
     }
 
     #playNext() {
