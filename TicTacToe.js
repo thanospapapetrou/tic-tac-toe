@@ -29,7 +29,6 @@ class TicTacToe {
         // TODO turn with getter and setter
         // TODO message constants
         // TODO nbsp
-        // TODO table cells constant size
         // TODO refactor using dirs
         // TODO start over
         TicTacToe.toggleDifficultySymbol();
