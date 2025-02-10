@@ -7,9 +7,17 @@ class TicTacToe {
     static #ELEMENT_CELL = 'td';
     static #ELEMENT_ROW = 'tr';
     static #HIGHLIGHT = 'lime';
+    static #MESSAGE_DRAW = 'It\'s a draw!';
+    static #MESSAGE_TURN = (mode, symbol, turn) => (mode == Mode.SINGLE_PLAYER)
+            ? ((turn == symbol) ? `You (${turn})` : `Computer (${turn})`)
+            : ((turn == Symbol.X) ? `Player 1 (${turn})` : `Player 2 (${turn})`);
+    static #MESSAGE_WIN = (mode, symbol, turn) => (mode == Mode.SINGLE_PLAYER)
+            ? ((turn == symbol) ? `You (${turn}) win!` : `Computer (${turn}) wins!`)
+            : ((turn == Symbol.X) ? `Player 1 (${turn}) wins!` : `Player 2 (${turn}) wins!`);
     static #PARAMETER_DIFFICULTY = 'difficulty';
     static #PARAMETER_MODE = 'mode';
     static #PARAMETER_SYMBOL = 'symbol';
+    static #PATTERN_TURN = /^.+\((X|O)\)$/;
     static #SELECTOR_DIFFICULTY = 'select#difficulty';
     static #SELECTOR_FORM = 'form';
     static #SELECTOR_MODE = 'select#mode';
@@ -26,7 +34,6 @@ class TicTacToe {
     #timer;
 
     static main() {
-        // TODO message constants
         // TODO refactor using dirs
         // TODO start over
         TicTacToe.toggleDifficultySymbol();
@@ -77,13 +84,13 @@ class TicTacToe {
     }
 
     get #turn() {
-        return document.querySelector(TicTacToe.#SELECTOR_TURN).firstChild.nodeValue;
+        return document.querySelector(TicTacToe.#SELECTOR_TURN).firstChild.nodeValue.match(TicTacToe.#PATTERN_TURN)[1];
     }
 
     set #turn(turn) {
         const element = document.querySelector(TicTacToe.#SELECTOR_TURN);
         element.firstChild && element.removeChild(element.firstChild);
-        element.appendChild(document.createTextNode(turn));
+        element.appendChild(document.createTextNode(TicTacToe.#MESSAGE_TURN(this.#mode, this.#symbol, turn)));
     }
 
     #playNext() {
@@ -190,10 +197,10 @@ class TicTacToe {
         this.#cells[row][column].appendChild(document.createTextNode(this.#turn));
         if (this.#isComplete(row, column, this.#turn)) {
             this.#timer.stop();
-            alert(this.#turn + ' won');
+            alert(TicTacToe.#MESSAGE_WIN(this.#mode, this.#symbol, this.#turn));
         } else if (this.#isDraw()) {
             this.#timer.stop();
-            alert('Draw');
+            alert(TicTacToe.#MESSAGE_DRAW);
         } else {
             this.#turn = (this.#turn == Symbol.X) ? Symbol.O : Symbol.X;
             this.#playNext();

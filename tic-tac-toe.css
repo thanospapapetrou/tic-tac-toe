@@ -12,6 +12,7 @@ table {
 td {
     border: 5px solid black;
     font-size: xxx-large;
+    font-weight: bold;
     text-align: center;
     vertical-align: middle;
     width: 60px;
