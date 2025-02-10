@@ -28,7 +28,6 @@ class TicTacToe {
     static main() {
         // TODO turn with getter and setter
         // TODO message constants
-        // TODO nbsp
         // TODO refactor using dirs
         // TODO start over
         TicTacToe.toggleDifficultySymbol();
@@ -68,7 +67,6 @@ class TicTacToe {
             const row = document.createElement(TicTacToe.#ELEMENT_ROW);
             for (let j = 0; j < TicTacToe.#SIZE; j++) {
                 this.#cells[i][j] = document.createElement(TicTacToe.#ELEMENT_CELL);
-                this.#cells[i][j].appendChild(document.createTextNode('*'));
                 this.#cells[i][j].style.cursor = TicTacToe.#CURSOR_ENABLED;
                 row.appendChild(this.#cells[i][j]);
             }
@@ -173,13 +171,13 @@ class TicTacToe {
     }
 
     #getSymbol(row, column) {
-        const symbol = this.#cells[row][column].firstChild.nodeValue;
+        const symbol = this.#cells[row][column]?.firstChild?.nodeValue;
         return Object.values(Symbol).includes(symbol) ? symbol : null;
     }
 
     #setSymbol(row, column) {
         this.#disable();
-        this.#cells[row][column].removeChild(this.#cells[row][column].firstChild);
+        this.#cells[row][column].firstChild && this.#cells[row][column].removeChild(this.#cells[row][column].firstChild);
         this.#cells[row][column].appendChild(document.createTextNode(this.#turn));
         if (this.#isComplete(row, column, this.#turn)) {
             this.#timer.stop();
