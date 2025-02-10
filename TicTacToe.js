@@ -31,6 +31,7 @@ class TicTacToe {
         // TODO nbsp
         // TODO table cells constant size
         // TODO refactor using dirs
+        // TODO start over
         TicTacToe.toggleDifficultySymbol();
         const mode = TicTacToe.#getParameter(TicTacToe.#PARAMETER_MODE, Mode);
         const difficulty = TicTacToe.#getParameter(TicTacToe.#PARAMETER_DIFFICULTY, Difficulty);

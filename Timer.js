@@ -5,10 +5,12 @@ class Timer {
     static #S_PER_MIN = 60;
 
     #start;
+    #element;
     #interval;
 
     constructor() {
         this.#start = new Date();
+        this.#element = document.querySelector(Timer.#SELECTOR);
         this.#interval = setInterval(this.#update.bind(this), Timer.#MS_PER_S);
         this.#update();
     }
@@ -18,10 +20,9 @@ class Timer {
     }
 
     #update() {
-        const element = document.querySelector(Timer.#SELECTOR);
-        element.firstChild && element.removeChild(element.firstChild);
+        this.#element.firstChild && this.#element.removeChild(this.#element.firstChild);
         const seconds = Math.floor((new Date() - this.#start) / Timer.#MS_PER_S);
-        element.appendChild(document.createTextNode(Timer.#FORMAT(
+        this.#element.appendChild(document.createTextNode(Timer.#FORMAT(
                 Math.floor(seconds / Timer.#S_PER_MIN), seconds % Timer.#S_PER_MIN)));
     }
 }
