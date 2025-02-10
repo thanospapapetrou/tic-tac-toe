@@ -1,19 +1,21 @@
 class TicTacToe {
     static #CURSOR_DISABLED = 'not-allowed';
     static #CURSOR_ENABLED = 'pointer';
+    static #DISPLAY_BLOCK = 'block';
     static #DISPLAY_NONE = 'none';
+    static #DISPLAY_TABLE = 'table';
     static #ELEMENT_CELL = 'td';
     static #ELEMENT_ROW = 'tr';
-    static #ELEMENT_TABLE = 'table';
     static #HIGHLIGHT = 'lime';
     static #PARAMETER_DIFFICULTY = 'difficulty';
     static #PARAMETER_MODE = 'mode';
     static #PARAMETER_SYMBOL = 'symbol';
-    static #SELECTOR_BODY = 'body';
     static #SELECTOR_DIFFICULTY = 'select#difficulty';
     static #SELECTOR_FORM = 'form';
     static #SELECTOR_MODE = 'select#mode';
+    static #SELECTOR_STATUS = 'p';
     static #SELECTOR_SYMBOL = 'select#symbol';
+    static #SELECTOR_TABLE = 'table';
     static #SIZE = 3;
 
     #mode;
@@ -21,11 +23,14 @@ class TicTacToe {
     #symbol;
     #cells;
     #turn;
+    #timer;
 
     static main() {
-        // TODO cleanup redundant methods
-        // stop when no cells remain
-        // timer
+        // TODO turn with getter and setter
+        // TODO message constants
+        // TODO nbsp
+        // TODO table cells constant size
+        // TODO refactor using dirs
         TicTacToe.toggleDifficultySymbol();
         const mode = TicTacToe.#getParameter(TicTacToe.#PARAMETER_MODE, Mode);
         const difficulty = TicTacToe.#getParameter(TicTacToe.#PARAMETER_DIFFICULTY, Difficulty);
@@ -34,7 +39,6 @@ class TicTacToe {
         (difficulty != null) && (document.querySelector(TicTacToe.#SELECTOR_DIFFICULTY).value = difficulty);
         (symbol != null) && (document.querySelector(TicTacToe.#SELECTOR_SYMBOL).value = symbol);
         if ((mode != null) && ((mode != Mode.SINGLE_PLAYER) || ((difficulty != null) && (symbol != null)))) {
-            document.querySelector(TicTacToe.#SELECTOR_FORM).style.display = TicTacToe.#DISPLAY_NONE;
             new TicTacToe(mode, difficulty, symbol);
         }
     }
@@ -56,7 +60,9 @@ class TicTacToe {
         this.#symbol = symbol;
         this.#cells = [];
         this.#turn = Symbol.X;
-        const table = document.createElement(TicTacToe.#ELEMENT_TABLE);
+        this.#timer = new Timer();
+        document.querySelector(TicTacToe.#SELECTOR_FORM).style.display = TicTacToe.#DISPLAY_NONE;
+        const table = document.querySelector(TicTacToe.#SELECTOR_TABLE);
         for (let i = 0; i < TicTacToe.#SIZE; i++) {
             this.#cells[i] = [];
             const row = document.createElement(TicTacToe.#ELEMENT_ROW);
@@ -68,7 +74,8 @@ class TicTacToe {
             }
             table.appendChild(row);
         }
-        document.querySelector(TicTacToe.#SELECTOR_BODY).appendChild(table);
+        table.style.display = TicTacToe.#DISPLAY_TABLE;
+        document.querySelector(TicTacToe.#SELECTOR_STATUS).style.display = TicTacToe.#DISPLAY_BLOCK;
         this.#playNext();
     }
 
@@ -175,8 +182,10 @@ class TicTacToe {
         this.#cells[row][column].removeChild(this.#cells[row][column].firstChild);
         this.#cells[row][column].appendChild(document.createTextNode(this.#turn));
         if (this.#isComplete(row, column, this.#turn)) {
+            this.#timer.stop();
             alert(this.#turn + ' won');
         } else if (this.#isDraw()) {
+            this.#timer.stop();
             alert('Draw');
         } else {
             this.#turn = (this.#turn == Symbol.X) ? Symbol.O : Symbol.X;

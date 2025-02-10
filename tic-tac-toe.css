@@ -5,10 +5,17 @@ body {
 table {
     border: 5px solid black;
     border-collapse: collapse;
+    float: left;
+    display: none;
 }
 
 td {
     border: 5px solid black;
     width: 10px;
     height: 10px;
+}
+
+p {
+    float: right;
+    display: none;
 }
