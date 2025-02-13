@@ -34,7 +34,7 @@ class TicTacToe {
     #timer;
 
     static main() {
-        // TODO refactor using dirs
+        // TODO difficult (alpha beta)
         // TODO start over
         TicTacToe.toggleDifficultySymbol();
         const mode = TicTacToe.#getParameter(TicTacToe.#PARAMETER_MODE, Mode);
@@ -83,6 +83,17 @@ class TicTacToe {
         this.#playNext();
     }
 
+    get #symbols() {
+        const symbols = [];
+        for (let i = 0; i < TicTacToe.#SIZE; i++) {
+            symbols[i] = [];
+            for (let j = 0; j < TicTacToe.#SIZE; j++) {
+                symbols[i][j] = this.#getSymbol(i, j);
+            }
+        }
+        return symbols;
+    }
+
     get #turn() {
         return document.querySelector(TicTacToe.#SELECTOR_TURN).firstChild.nodeValue.match(TicTacToe.#PATTERN_TURN)[1];
     }
@@ -97,8 +108,10 @@ class TicTacToe {
         if ((this.#mode == Mode.TWO_PLAYERS) || (this.#turn == this.#symbol)) {
             this.#enable();
         } else {
-            const random = this.#random();
-            this.#setSymbol(random.i, random.j);
+            const next = (this.#difficulty == Difficulty.EASY)
+                ? this.#random()
+                : this.#alphaBeta(this.#symbols, -Infinity, Infinity, this.#turn);
+            this.#setSymbol(next.row, next.column);
         }
     }
 
@@ -122,70 +135,6 @@ class TicTacToe {
         }
     }
 
-    #isComplete(row, column, symbol) {
-        return this.#isCompleteRow(row, symbol) || this.#isCompleteColumn(column, symbol)
-            || this.#isCompleteDiagonal(symbol) || this.#isCompleteAntiDiagonal(symbol);
-    }
-
-    #isCompleteRow(row, symbol) {
-        const complete = Array.from(Array(TicTacToe.#SIZE).keys())
-            .map(i => this.#getSymbol(row, i))
-            .filter(s => s == symbol)
-            .length == TicTacToe.#SIZE;
-        if (complete) {
-            Array.from(Array(TicTacToe.#SIZE).keys())
-                .forEach(i => this.#highlight(row, i));
-        }
-        return complete;
-    }
-
-    #isCompleteColumn(column, symbol) {
-        const complete = Array.from(Array(TicTacToe.#SIZE).keys())
-            .map(i => this.#getSymbol(i, column))
-            .filter(s => s == symbol)
-            .length == TicTacToe.#SIZE;
-        if (complete) {
-            Array.from(Array(TicTacToe.#SIZE).keys())
-                .forEach(i => this.#highlight(i, column));
-        }
-        return complete;
-    }
-
-    #isCompleteDiagonal(symbol) {
-        const complete = Array.from(Array(TicTacToe.#SIZE).keys())
-            .map(i => this.#getSymbol(i, i))
-            .filter(s => s == symbol)
-            .length == TicTacToe.#SIZE;
-        if (complete) {
-            Array.from(Array(TicTacToe.#SIZE).keys())
-                .forEach(i => this.#highlight(i, i));
-        }
-        return complete;
-    }
-
-    #isCompleteAntiDiagonal(symbol) {
-        const complete = Array.from(Array(TicTacToe.#SIZE).keys())
-            .map(i => this.#getSymbol(i, TicTacToe.#SIZE - 1 - i))
-            .filter(s => s == symbol)
-            .length == TicTacToe.#SIZE;
-        if (complete) {
-            Array.from(Array(TicTacToe.#SIZE).keys())
-                .forEach(i => this.#highlight(i, TicTacToe.#SIZE - 1 - i));
-        }
-        return complete;
-    }
-
-    #isDraw() {
-        for (let i = 0; i < TicTacToe.#SIZE; i++) {
-            for (let j = 0; j < TicTacToe.#SIZE; j++) {
-                if (this.#getSymbol(i, j) == null) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     #getSymbol(row, column) {
         const symbol = this.#cells[row][column]?.firstChild?.nodeValue;
         return Object.values(Symbol).includes(symbol) ? symbol : null;
@@ -195,10 +144,11 @@ class TicTacToe {
         this.#disable();
         this.#cells[row][column].firstChild && this.#cells[row][column].removeChild(this.#cells[row][column].firstChild);
         this.#cells[row][column].appendChild(document.createTextNode(this.#turn));
-        if (this.#isComplete(row, column, this.#turn)) {
+        const win = this.#isWin(this.#symbols, true);
+        if (win != null) {
             this.#timer.stop();
             alert(TicTacToe.#MESSAGE_WIN(this.#mode, this.#symbol, this.#turn));
-        } else if (this.#isDraw()) {
+        } else if (this.#isDraw(this.#symbols)) {
             this.#timer.stop();
             alert(TicTacToe.#MESSAGE_DRAW);
         } else {
@@ -214,6 +164,140 @@ class TicTacToe {
     #random() {
         const i = Math.floor(Math.random() * TicTacToe.#SIZE);
         const j = Math.floor(Math.random() * TicTacToe.#SIZE);
-        return (this.#getSymbol(i, j) == null) ? {i: i, j: j} : this.#random();
+        return (this.#getSymbol(i, j) == null) ? {row: i, column: j} : this.#random();
+    }
+
+    // https://xkcd.com/832/
+    #alphaBeta(ticTacToe, a, b, turn) {
+        const win = this.#isWin(ticTacToe, false);
+        if (win != null) {
+            return {row: null, column: null, value: (win == Symbol.X) ? Infinity : -Infinity};
+        }
+        if (this.#isDraw(ticTacToe)) {
+            return {row: null, column: null, value: 0};
+        }
+        let value = null;
+        let row = null;
+        let column = null;
+        if (turn == Symbol.X) {
+            value = -Infinity;
+            for (let child of this.#children(ticTacToe)) {
+                const newTicTacToe = JSON.parse(JSON.stringify(ticTacToe));
+                newTicTacToe[child.row][child.column] = Symbol.X;
+                const newAlphaBeta = this.#alphaBeta(newTicTacToe, a, b, Symbol.O);
+                value = Math.max(value, newAlphaBeta.value);
+                row = child.row;
+                column = child.column;
+                a = Math.max(a, value);
+                if (value >= b) {
+                    break;
+                }
+            }
+            return {row: row, column: column, value: value};
+        } else {
+            value = Infinity;
+            for (let child of this.#children(ticTacToe)) {
+                const newTicTacToe = JSON.parse(JSON.stringify(ticTacToe));
+                newTicTacToe[child.row][child.column] = Symbol.O;
+                const newAlphaBeta = this.#alphaBeta(newTicTacToe, a, b, Symbol.X);
+                value = Math.min(value, newAlphaBeta.value);
+                row = child.row;
+                column = child.column;
+                b = Math.min(b, value);
+                if (value <= a) {
+                    break;
+                }
+            }
+            return {row: row, column: column, value: value};
+        }
+    }
+
+    #isWin(ticTacToe, highlight) {
+        for (let i = 0; i < TicTacToe.#SIZE; i++) {
+            const winRow = this.#isWinRow(ticTacToe, i);
+            if (winRow != null) {
+                highlight && Array.from(Array(TicTacToe.#SIZE).keys())
+                    .forEach(j => this.#highlight(i, j));
+                return winRow;
+            }
+            const winColumn = this.#isWinColumn(ticTacToe, i);
+            if (winColumn != null) {
+                highlight && Array.from(Array(TicTacToe.#SIZE).keys())
+                    .forEach(j => this.#highlight(j, i));
+                return winColumn;
+            }
+        }
+        const winDiagonal = this.#isWinDiagonal(ticTacToe);
+        if (winDiagonal != null) {
+            highlight && Array.from(Array(TicTacToe.#SIZE).keys())
+                .forEach(i => this.#highlight(i, i));
+            return winDiagonal;
+        }
+        const winAntiDiagonal = this.#isWinAntiDiagonal(ticTacToe);
+        if (winAntiDiagonal != null) {
+            highlight && Array.from(Array(TicTacToe.#SIZE).keys())
+                .forEach(i => this.#highlight(i, TicTacToe.#SIZE - 1 - i));
+            return winAntiDiagonal;
+        }
+        return null;
+    }
+
+    #isWinRow(ticTacToe, row) {
+        for (let j = 1; j < TicTacToe.#SIZE; j++) {
+            if (ticTacToe[row][j] != ticTacToe[row][0]) {
+                return null;
+            }
+        }
+        return ticTacToe[row][0];
+    }
+
+    #isWinColumn(ticTacToe, column) {
+        for (let i = 1; i < TicTacToe.#SIZE; i++) {
+            if (ticTacToe[i][column] != ticTacToe[0][column]) {
+                return null;
+            }
+        }
+        return ticTacToe[0][column];
+    }
+
+    #isWinDiagonal(ticTacToe) {
+        for (let i = 1; i < TicTacToe.#SIZE; i++) {
+            if (ticTacToe[i][i] != ticTacToe[0][0]) {
+                return null;
+            }
+        }
+        return ticTacToe[0][0];
+    }
+
+    #isWinAntiDiagonal(ticTacToe) {
+        for (let i = 1; i < TicTacToe.#SIZE; i++) {
+            if (ticTacToe[i][TicTacToe.#SIZE - 1 - i] != ticTacToe[0][TicTacToe.#SIZE - 1]) {
+                return null;
+            }
+        }
+        return ticTacToe[0][TicTacToe.#SIZE - 1]
+    }
+
+    #isDraw(ticTacToe) {
+        for (let i = 0; i < TicTacToe.#SIZE; i++) {
+            for (let j = 0; j < TicTacToe.#SIZE; j++) {
+                if (ticTacToe[i][j] == null) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    #children(ticTacToe) {
+        const children = [];
+        for (let i = 0; i < TicTacToe.#SIZE; i++) {
+            for (let j = 0; j < TicTacToe.#SIZE; j++) {
+                if (ticTacToe[i][j] == null) {
+                    children.push({row: i, column: j});
+                }
+            }
+        }
+        return children;
     }
 }
