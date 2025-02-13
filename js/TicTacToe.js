@@ -110,7 +110,9 @@ class TicTacToe {
         } else {
             const next = (this.#difficulty == Difficulty.EASY)
                 ? this.#random()
-                : this.#alphaBeta(this.#symbols, -Infinity, Infinity, this.#turn);
+                // TODO
+                : this.#alphaBeta(this.#symbols, -Infinity, Infinity, 0, this.#turn);
+//                : this.#minimax(this.#symbols, this.#turn);
             this.#setSymbol(next.row, next.column);
         }
     }
@@ -168,47 +170,56 @@ class TicTacToe {
     }
 
     // https://xkcd.com/832/
-    #alphaBeta(ticTacToe, a, b, turn) {
+    #alphaBeta(ticTacToe, a, b, depth, turn) {
         const win = this.#isWin(ticTacToe, false);
         if (win != null) {
-            return {row: null, column: null, value: (win == Symbol.X) ? Infinity : -Infinity};
+            return {row: null, column: null, depth: depth, value: (win == Symbol.X) ? Infinity : -Infinity};
         }
         if (this.#isDraw(ticTacToe)) {
-            return {row: null, column: null, value: 0};
+            return {row: null, column: null, depth: depth, value: 0};
         }
-        let value = null;
         let row = null;
         let column = null;
+        let d = null;
+        let value = null;
         if (turn == Symbol.X) {
+            d = Infinity;
             value = -Infinity;
             for (let child of this.#children(ticTacToe)) {
                 const newTicTacToe = JSON.parse(JSON.stringify(ticTacToe));
                 newTicTacToe[child.row][child.column] = Symbol.X;
-                const newAlphaBeta = this.#alphaBeta(newTicTacToe, a, b, Symbol.O);
-                value = Math.max(value, newAlphaBeta.value);
-                row = child.row;
-                column = child.column;
-                a = Math.max(a, value);
-                if (value >= b) {
-                    break;
+                const newAlphaBeta = this.#alphaBeta(newTicTacToe, a, b, depth + 1, Symbol.O);
+                if ((newAlphaBeta.value > value) || ((newAlphaBeta.value == value) && (newAlphaBeta.depth < d))) {
+                    row = child.row;
+                    column = child.column;
+                    d = newAlphaBeta.depth;
+                    value = newAlphaBeta.value;
                 }
+//                a = Math.max(a, value);
+//                if (value >= b) {
+//                    break;
+//                }
             }
-            return {row: row, column: column, value: value};
+            return {row: row, column: column, depth: d, value: value};
         } else {
+            d = Infinity;
             value = Infinity;
             for (let child of this.#children(ticTacToe)) {
                 const newTicTacToe = JSON.parse(JSON.stringify(ticTacToe));
                 newTicTacToe[child.row][child.column] = Symbol.O;
-                const newAlphaBeta = this.#alphaBeta(newTicTacToe, a, b, Symbol.X);
-                value = Math.min(value, newAlphaBeta.value);
-                row = child.row;
-                column = child.column;
-                b = Math.min(b, value);
-                if (value <= a) {
-                    break;
+                const newAlphaBeta = this.#alphaBeta(newTicTacToe, a, b, depth + 1, Symbol.X);
+                if ((newAlphaBeta.value < value) || ((newAlphaBeta.value == value) && (newAlphaBeta.depth < d))) {
+                    row = child.row;
+                    column = child.column;
+                    d = newAlphaBeta.depth;
+                    value = newAlphaBeta.value;
                 }
+//                b = Math.min(b, value);
+//                if (value <= a) {
+//                    break;
+//                }
             }
-            return {row: row, column: column, value: value};
+            return {row: row, column: column, depth: d, value: value};
         }
     }
 
@@ -300,4 +311,47 @@ class TicTacToe {
         }
         return children;
     }
+
+    #minimax(ticTacToe, turn) {
+        const win = this.#isWin(ticTacToe, false);
+        if (win != null) {
+            return {row: null, column: null, value: (win == Symbol.X) ? Infinity : -Infinity};
+        }
+        if (this.#isDraw(ticTacToe)) {
+            return {row: null, column: null, value: 0};
+        }
+        let row = null;
+        let column = null;
+        let value = null;
+        if (turn == Symbol.X) {
+            value = -Infinity;
+            for (let child of this.#children(ticTacToe)) {
+                const newTicTacToe = JSON.parse(JSON.stringify(ticTacToe));
+                newTicTacToe[child.row][child.column] = Symbol.X;
+                const newMinimax = this.#minimax(newTicTacToe, Symbol.O);
+                if (newMinimax.value > value) {
+                    row = child.row;
+                    column = child.column;
+                    value = newMinimax.value;
+                }
+            }
+            return {row: row, column: column, value: value};
+        } else {
+            value = Infinity;
+            for (let child of this.#children(ticTacToe)) {
+                const newTicTacToe = JSON.parse(JSON.stringify(ticTacToe));
+                newTicTacToe[child.row][child.column] = Symbol.O;
+                const newMinimax = this.#minimax(newTicTacToe, Symbol.X);
+                if (newMinimax.value < value) {
+                    row = child.row;
+                    column = child.column;
+                    value = newMinimax.value;
+                }
+            }
+            return {row: row, column: column, value: value};
+        }
+    }
+
+//    (* Initial call *)
+//    minimax(origin, depth, TRUE)
 }
